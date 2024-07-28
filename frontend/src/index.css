@@ -1,0 +1,18 @@
+/* src/index.css */
+
+/* Import Tailwind CSS base styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  font-family: 'Poppins', sans-serif; /* Use Poppins as the default font for the body */
+}
+
+/* Customize container */
+.container {
+  @apply max-w-5xl mx-auto px-4; /* Tailwind utilities for max width, margin, and padding */
+}
+
+/* Additional global styles (if needed) */
