@@ -11,6 +11,7 @@ import SignUp from './components/signup';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [resetUI, setResetUI] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -30,16 +31,22 @@ function App() {
     setUser(null);
   };
 
+  const handleResetUI = () => {
+    setResetUI(true);
+    setTimeout(() => setResetUI(false), 0); // Reset immediately after state update
+  };
+
   return (
     <Router>
-      <Header user={user} onLogout={handleLogout} />
+      <Header user={user} onLogout={handleLogout} onResetUI={handleResetUI} />
       <main className="container mx-auto p-4">
         <Routes>
-          <Route path="/" element={<QuizList user={user} />} />
+          <Route path="/" element={<QuizList user={user} resetUI={resetUI} />} />
           <Route path="/signup" element={<SignUp setUser={setUser} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/create-quiz" element={<CreateQuiz user={user} />} />
           <Route path="/join-quiz" element={<JoinQuiz />} />
+          <Route path="/edit-quiz" element={<EditQuiz />} />
           <Route path="/edit-quiz/:quizId" element={<EditQuiz />} />
         </Routes>
       </main>

@@ -42,7 +42,7 @@ app.post('/api/auth/register', async (req, res) => {
         const payload = { userId: user._id };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        res.status(201).json({ token });
+        res.status(201).json({ token, creatorId: user._id, username: user.username, email: user.email });
     } catch (error) {
         console.error('Error registering user:', error);
         res.status(500).json({ error: 'Server error' });
@@ -67,7 +67,7 @@ app.post('/api/auth/login', async (req, res) => {
         const payload = { userId: user._id, username: user.username };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        res.json({ token, username: user.username, email: user.email });
+        res.json({ token, creatorId: user._id, username: user.username, email: user.email });
     } catch (error) {
         console.error('Error logging in user:', error);
         res.status(500).json({ error: 'Server error' });
@@ -98,18 +98,6 @@ app.post('/api/quizzes', async (req, res) => {
     }
 });
 
-// Get a quiz by ID
-app.get('/api/quizzes/:quizId', async (req, res) => {
-    try {
-        const quiz = await Quiz.findById(req.params.quizId);
-        if (!quiz) return res.status(404).send('Quiz not found');
-        res.send(quiz);
-    } catch (err) {
-        console.error('Error retrieving quiz:', err);
-        res.status(500).send('Error retrieving quiz');
-    }
-});
-
 // Get quizzes by creatorId and title
 app.get('/api/quizzes', async (req, res) => {
     const { creatorId, title } = req.query;
@@ -123,29 +111,25 @@ app.get('/api/quizzes', async (req, res) => {
         }
         const quizzes = await Quiz.find(query);
         if (quizzes.length === 0) return res.status(404).json({ error: 'Quiz not found' });
-        res.json(quizzes[0]); // Return the first matching quiz
+        res.json(quizzes); // Return all matching quizzes
     } catch (err) {
         console.error('Error retrieving quizzes:', err);
         res.status(500).json({ error: 'Error retrieving quizzes' });
     }
 });
 
+// Get a quiz by ID and creatorId
+app.get('/api/quizzes/:quizId', async (req, res) => {
+    const { quizId } = req.params;
+    const { creatorId } = req.query; // Assume the creator ID is passed as a query parameter
 
-
-// Update a quiz by ID
-app.put('/api/quizzes/:quizId', async (req, res) => {
     try {
-        const { title, questions } = req.body;
-        const quiz = await Quiz.findByIdAndUpdate(
-            req.params.quizId,
-            { title, questions },
-            { new: true }
-        );
-        if (!quiz) return res.status(404).send('Quiz not found');
-        res.send(quiz);
+        const quiz = await Quiz.findOne({ _id: quizId, creatorId });
+        if (!quiz) return res.status(404).json({ error: 'Quiz not found or you are not the creator' });
+        res.json(quiz);
     } catch (err) {
-        console.error('Error updating quiz:', err);
-        res.status(500).send('Error updating quiz');
+        console.error('Error retrieving quiz:', err);
+        res.status(500).json({ error: 'Error retrieving quiz' });
     }
 });
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getQuizByTitleAndCreator } from '../api';
+import { useNavigate } from 'react-router-dom';
 
 function JoinQuiz() {
   const [creatorID, setCreatorID] = useState('');
@@ -9,14 +10,19 @@ function JoinQuiz() {
   const [score, setScore] = useState(null);
   const [quizNotFound, setQuizNotFound] = useState(false);
 
+  const navigate = useNavigate(); // Use useNavigate instead of useHistory
+
   const fetchQuiz = async (creator, title) => {
     setQuizNotFound(false);
     setScore(null);
     try {
       const response = await getQuizByTitleAndCreator(creator, title);
-      if (response.data) {
-        setQuiz(response.data);
-        setUserAnswers(Array(response.data.questions.length).fill(''));
+      console.log('API Response:', response);
+
+      if (response && response.data && Array.isArray(response.data) && response.data.length > 0) {
+        const quizData = response.data[0];
+        setQuiz(quizData);
+        setUserAnswers(Array(quizData.questions.length).fill(''));
       } else {
         setQuiz(null);
         setQuizNotFound(true);
@@ -63,6 +69,14 @@ function JoinQuiz() {
     }
   };
 
+  const handleBackToHomepage = () => {
+    navigate('/'); // Redirect to homepage
+    setQuiz(null); // Reset quiz state
+    setUserAnswers([]);
+    setScore(null);
+    setQuizNotFound(false);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <h2 className="text-2xl font-bold mb-4">Join Quiz</h2>
@@ -105,7 +119,7 @@ function JoinQuiz() {
         </div>
       )}
 
-      {quiz && (
+      {quiz && quiz.questions && Array.isArray(quiz.questions) && (
         <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
           <h3 className="text-xl font-bold mb-4">{quiz.title}</h3>
           <form onSubmit={handleQuizSubmit}>
@@ -141,6 +155,12 @@ function JoinQuiz() {
               <h3 className="text-2xl font-bold">
                 Your score: {score} / {quiz.questions.length}
               </h3>
+              <button
+                onClick={handleBackToHomepage}
+                className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              >
+                Back to Home page
+              </button>
             </div>
           )}
         </div>

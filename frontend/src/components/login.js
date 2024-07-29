@@ -21,6 +21,7 @@ function Login({ setUser }) {
 
     if (response.ok) {
       localStorage.setItem('token', data.token);
+      localStorage.setItem('creatorId', data.creatorId); // Save creatorId to local storage
       setUser({ username: data.username, email: data.email });
       navigate('/create-quiz');
     } else {
@@ -31,7 +32,7 @@ function Login({ setUser }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="text-center mb-6">
-      <img 
+        <img 
           src={kyronQuizImage} 
           alt="KyronQuiz Logo" 
           className="w-40 h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 mx-auto mb-4" 
