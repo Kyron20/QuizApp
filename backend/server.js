@@ -7,8 +7,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Import the models
-const Quiz = require('./models/quiz');
 const Users = require('./models/users');
+const Quiz = require('./models/quiz');
 
 // Initialize Express application
 const app = express();
@@ -20,11 +20,11 @@ mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
-.then(() => console.log('MongoDB connected successfully to KyronDatabase'))
-.catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-});
+    .then(() => console.log('MongoDB connected successfully to KyronDatabase'))
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        process.exit(1);
+    });
 
 // User registration route
 app.post('/api/auth/register', async (req, res) => {
@@ -64,7 +64,7 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
 
-        const payload = { userId: user._id };
+        const payload = { userId: user._id, username: user.username };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         res.json({ token, username: user.username, email: user.email });
@@ -74,28 +74,21 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// Routes for quizzes
+// Create a quiz
 app.post('/api/quizzes', async (req, res) => {
     try {
         const { title, creatorId, questions } = req.body;
 
-        console.log('Received data:', req.body); // Log the received data
-
-        // Validate input
         if (!title || !creatorId || !Array.isArray(questions)) {
-            console.error('Invalid input:', { title, creatorId, questions });
             return res.status(400).json({ error: 'Invalid input' });
         }
 
-        // Validate each question
         for (const question of questions) {
-            if (!question.question || !Array.isArray(question.options) || !question.answer) {
-                console.error('Invalid question format:', question);
+            if (!question.question || !Array.isArray(question.options) || !question.correctAnswer) {
                 return res.status(400).json({ error: 'Invalid question format' });
             }
         }
 
-        // Create and save quiz
         const quiz = new Quiz({ title, creatorId, questions });
         await quiz.save();
         res.status(201).json(quiz);
@@ -105,8 +98,7 @@ app.post('/api/quizzes', async (req, res) => {
     }
 });
 
-
-
+// Get a quiz by ID
 app.get('/api/quizzes/:quizId', async (req, res) => {
     try {
         const quiz = await Quiz.findById(req.params.quizId);
@@ -118,6 +110,29 @@ app.get('/api/quizzes/:quizId', async (req, res) => {
     }
 });
 
+// Get quizzes by creatorId and title
+app.get('/api/quizzes', async (req, res) => {
+    const { creatorId, title } = req.query;
+    try {
+        let query = {};
+        if (creatorId) {
+            query.creatorId = creatorId;
+        }
+        if (title) {
+            query.title = title;
+        }
+        const quizzes = await Quiz.find(query);
+        if (quizzes.length === 0) return res.status(404).json({ error: 'Quiz not found' });
+        res.json(quizzes[0]); // Return the first matching quiz
+    } catch (err) {
+        console.error('Error retrieving quizzes:', err);
+        res.status(500).json({ error: 'Error retrieving quizzes' });
+    }
+});
+
+
+
+// Update a quiz by ID
 app.put('/api/quizzes/:quizId', async (req, res) => {
     try {
         const { title, questions } = req.body;

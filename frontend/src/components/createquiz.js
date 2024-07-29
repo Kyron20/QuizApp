@@ -31,9 +31,39 @@ function CreateQuiz({ user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const trimmedTitle = title.trim();
+
+    if (!trimmedTitle) {
+      alert('Quiz title cannot be empty');
+      return;
+    }
+
+    const validatedQuestions = questions.map((q) => {
+      const trimmedQuestion = q.question.trim();
+      const trimmedOptions = q.options.map(option => option.trim());
+      const trimmedCorrectAnswer = q.correctAnswer.trim();
+
+      if (!trimmedQuestion || trimmedOptions.length !== 4 || !trimmedCorrectAnswer) {
+        alert('Each question must have a non-empty question text, exactly 4 options, and a non-empty correct answer');
+        throw new Error('Invalid question format');
+      }
+
+      if (!trimmedOptions.includes(trimmedCorrectAnswer)) {
+        alert('Correct answer must be one of the options');
+        throw new Error('Invalid question format');
+      }
+
+      return {
+        question: trimmedQuestion,
+        options: trimmedOptions,
+        correctAnswer: trimmedCorrectAnswer,
+      };
+    });
+
+    const quizData = { title: trimmedTitle, creatorId: user?.username || 'Unknown', questions: validatedQuestions };
+
     try {
-      const creatorId = user?.email || 'Unknown';
-      const quizData = { title, creatorId, questions };
       console.log('Sending data:', quizData);
       await createQuiz(quizData);
       alert('Quiz created successfully');
@@ -106,15 +136,15 @@ function CreateQuiz({ user }) {
                 Delete
               </button>
             )}
-            <button
-              type="button"
-              onClick={handleAddQuestion}
-              className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Add Another Question
-            </button>
           </div>
         ))}
+        <button
+          type="button"
+          onClick={handleAddQuestion}
+          className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        >
+          Add Another Question
+        </button>
         <button
           type="submit"
           className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"

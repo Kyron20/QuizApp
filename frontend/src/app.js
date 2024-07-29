@@ -1,6 +1,6 @@
-// src/App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import Header from './components/header';
 import Login from './components/login';
 import CreateQuiz from './components/createquiz';
@@ -15,10 +15,13 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Decode token logic (pseudo-code)
-      const decodedToken = {}; // Replace with actual decoding logic
-      const { username, email } = decodedToken;
-      setUser({ username, email });
+      try {
+        const decodedToken = jwtDecode(token);
+        const { username, email } = decodedToken;
+        setUser({ username, email });
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
     }
   }, []);
 
@@ -32,7 +35,7 @@ function App() {
       <Header user={user} onLogout={handleLogout} />
       <main className="container mx-auto p-4">
         <Routes>
-          <Route path="/" element={<QuizList />} />
+          <Route path="/" element={<QuizList user={user} />} />
           <Route path="/signup" element={<SignUp setUser={setUser} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/create-quiz" element={<CreateQuiz user={user} />} />
