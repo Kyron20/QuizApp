@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getQuizList, getQuiz } from '../api';
 
-function QuizList({ user }) {
+function QuizList({ user, resetUI }) {
     const [quizzes, setQuizzes] = useState([]);
     const [selectedQuiz, setSelectedQuiz] = useState(null);
     const [userAnswers, setUserAnswers] = useState([]);
@@ -11,8 +11,8 @@ function QuizList({ user }) {
         const fetchQuizzes = async () => {
             if (user && user.username) {
                 try {
-                    const response = await getQuizList(user.username); // Ensure this passes the username correctly
-                    console.log('Fetched quizzes:', response); 
+                    const response = await getQuizList(user.username);
+                    console.log('Fetched quizzes:', response);
                     setQuizzes(response);
                 } catch (error) {
                     console.error('Error fetching quizzes:', error);
@@ -24,9 +24,18 @@ function QuizList({ user }) {
         fetchQuizzes();
     }, [user]);
 
+    useEffect(() => {
+        // Reset selected quiz and user answers when resetUI changes
+        if (resetUI) {
+            setSelectedQuiz(null);
+            setUserAnswers([]);
+            setScore(null);
+        }
+    }, [resetUI]);
+
     const handleQuizClick = async (quizId) => {
         try {
-            const response = await getQuiz(quizId, user.username); 
+            const response = await getQuiz(quizId, user.username);
             setSelectedQuiz(response);
             setUserAnswers(Array(response.questions.length).fill(''));
             setScore(null);
