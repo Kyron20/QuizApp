@@ -60,6 +60,7 @@ export const updateQuiz = async (quizId, quizData) => {
   }
 };
 
+
 // New function to fetch quiz by creator ID and title
 export const getQuizByTitleAndCreator = async (creatorId, title) => {
   try {

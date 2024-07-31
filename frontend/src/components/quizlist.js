@@ -3,9 +3,11 @@ import { getQuizList, getQuiz } from '../api';
 
 function QuizList({ user, resetUI }) {
     const [quizzes, setQuizzes] = useState([]);
+    const [filteredQuizzes, setFilteredQuizzes] = useState([]);
     const [selectedQuiz, setSelectedQuiz] = useState(null);
     const [userAnswers, setUserAnswers] = useState([]);
     const [score, setScore] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const fetchQuizzes = async () => {
@@ -14,9 +16,11 @@ function QuizList({ user, resetUI }) {
                     const response = await getQuizList(user.username);
                     console.log('Fetched quizzes:', response);
                     setQuizzes(response);
+                    setFilteredQuizzes(response); // Initialize filteredQuizzes with all quizzes
                 } catch (error) {
                     console.error('Error fetching quizzes:', error);
                     setQuizzes([]);
+                    setFilteredQuizzes([]);
                 }
             }
         };
@@ -32,6 +36,19 @@ function QuizList({ user, resetUI }) {
             setScore(null);
         }
     }, [resetUI]);
+
+    useEffect(() => {
+        // Filter quizzes based on search query
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const filtered = quizzes.filter((quiz) =>
+                quiz.title.toLowerCase().includes(query)
+            );
+            setFilteredQuizzes(filtered);
+        } else {
+            setFilteredQuizzes(quizzes);
+        }
+    }, [searchQuery, quizzes]);
 
     const handleQuizClick = async (quizId) => {
         try {
@@ -74,8 +91,17 @@ function QuizList({ user, resetUI }) {
             {!selectedQuiz ? (
                 <>
                     <h2 className="text-2xl font-bold mb-6">Your Quizzes</h2>
+                    <div className="mb-4">
+                        <input
+                            type="text"
+                            placeholder="Search quizzes..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        />
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {quizzes.map((quiz) => (
+                        {filteredQuizzes.map((quiz) => (
                             <div
                                 key={quiz._id}
                                 className="bg-white p-6 rounded-lg shadow-lg cursor-pointer hover:bg-gray-100 transition flex flex-col justify-between"

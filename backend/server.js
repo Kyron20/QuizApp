@@ -27,27 +27,47 @@ mongoose.connect(process.env.MONGODB_URI, {
     });
 
 // User registration route
-app.post('/api/auth/register', async (req, res) => {
-    const { username, email, password } = req.body;
+const { body, validationResult } = require('express-validator');
 
-    try {
-        let user = await Users.findOne({ email });
-        if (user) {
-            return res.status(400).json({ error: 'User already exists' });
-        }
+app.post('/api/auth/register', [
+  body('username').notEmpty().withMessage('Username is required'),
+  body('email').isEmail().withMessage('Invalid email format'),
+  body('password')
+    .isLength({ min: 9 }).withMessage('Password must be at least 9 characters long')
+    .matches(/\d/).withMessage('Password must contain a number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain a special character')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-        user = new Users({ username, email, password });
-        await user.save();
+  const { username, email, password } = req.body;
 
-        const payload = { userId: user._id };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        res.status(201).json({ token, creatorId: user._id, username: user.username, email: user.email });
-    } catch (error) {
-        console.error('Error registering user:', error);
-        res.status(500).json({ error: 'Server error' });
+  try {
+    let user = await Users.findOne({ email });
+    if (user) {
+      return res.status(400).json({ errors: [{ msg: 'Email already exists' }] });
     }
+
+    user = await Users.findOne({ username });
+    if (user) {
+      return res.status(400).json({ errors: [{ msg: 'Username already exists' }] });
+    }
+
+    user = new Users({ username, email, password });
+    await user.save();
+
+    const payload = { userId: user._id };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.status(201).json({ token, creatorId: user._id, username: user.username, email: user.email });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ errors: [{ msg: 'Server error' }] });
+  }
 });
+
 
 // User login route
 app.post('/api/auth/login', async (req, res) => {
