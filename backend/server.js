@@ -133,6 +133,30 @@ app.get('/api/quizzes/:quizId', async (req, res) => {
     }
 });
 
+
+// Update a quiz
+app.put('/api/quizzes/:quizId', async (req, res) => {
+    const { quizId } = req.params;
+    const { title, questions, creatorId } = req.body;
+
+    try {
+        const quiz = await Quiz.findOneAndUpdate(
+            { _id: quizId, creatorId },
+            { title, questions },
+            { new: true } // Return the updated document
+        );
+
+        if (!quiz) return res.status(404).json({ error: 'Quiz not found or you are not the creator' });
+
+        res.json(quiz);
+    } catch (err) {
+        console.error('Error updating quiz:', err);
+        res.status(500).json({ error: 'Error updating quiz' });
+    }
+});
+
+
+
 // Start the server
 app.listen(5000, () => {
     console.log('Server is running on port 5000');

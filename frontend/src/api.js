@@ -45,13 +45,19 @@ export const getQuizList = async (username) => {
 
 
 export const getQuizByCreatorAndId = async (quizId, creatorId) => {
-  const response = await axios.get(`/api/quizzes/${quizId}?creatorId=${creatorId}`);
+  const response = await axios.get(`${API_URL}/quizzes/${quizId}`, { params: { creatorId } });
   return response;
 };
 
-export const updateQuiz = async (quizId, title, questions, creatorId) => {
-  const response = await axios.put(`/api/quizzes/${quizId}`, { title, questions, creatorId });
-  return response;
+
+export const updateQuiz = async (quizId, quizData) => {
+  try {
+    const response = await axios.put(`${API_URL}/quizzes/${quizId}`, quizData);
+    return response.data; // Return only data part
+  } catch (error) {
+    console.error('Error updating quiz:', error);
+    throw error; // Ensure you throw error to handle in component
+  }
 };
 
 // New function to fetch quiz by creator ID and title

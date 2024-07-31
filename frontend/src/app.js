@@ -46,8 +46,8 @@ function App() {
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/create-quiz" element={<CreateQuiz user={user} />} />
           <Route path="/join-quiz" element={<JoinQuiz />} />
-          <Route path="/edit-quiz" element={<EditQuiz />} />
-          <Route path="/edit-quiz/:quizId" element={<EditQuiz />} />
+          <Route path="/edit-quiz" element={<EditQuiz user={user} />} />
+          <Route path="/edit-quiz/:quizId" element={<EditQuiz user={user} />} />
         </Routes>
       </main>
     </Router>
