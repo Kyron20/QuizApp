@@ -14,4 +14,4 @@ An interactive web application for creating, managing, and taking quizzes. Featu
 
 - **Frontend**: React, TailwindCSS
 - **Backend**: Express.js
-- **Database**: MongoDB#
+- **Database**: MongoDB
